@@ -17,7 +17,7 @@ export type AuthType = {
 // @ts-ignore
 const AuthContext = createContext<AuthType>();
 
-export const AuthProvider = (props: any): AuthType | any => {
+export const AuthProvider = (props: any) => {
   const [accessToken, setAccessToken] = useState();
   const [refreshToken, setRefreshToken] = useState();
 
@@ -40,6 +40,7 @@ export const AuthProvider = (props: any): AuthType | any => {
   };
 
   const logout = async () => {
+    alert("LOGOUT");
     await logoutMutation();
     await client?.resetStore();
     setAccessToken("");
@@ -47,7 +48,7 @@ export const AuthProvider = (props: any): AuthType | any => {
   };
 
   const setAuth = ({ jit, jid }: { jit: string; jid: string }) => {
-    console.log("SET AUTH", jit[0], jid[0]);
+    // console.log("SET AUTH", jit[0], jid[0]);
     setAccessToken(jit);
     setRefreshToken(jid);
   };
@@ -69,4 +70,4 @@ export const AuthProvider = (props: any): AuthType | any => {
   );
 };
 
-export const useAuth = () => useContext(AuthContext);
+export const useAuth = () => useContext<AuthType>(AuthContext);

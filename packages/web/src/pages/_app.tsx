@@ -3,17 +3,18 @@ import withApollo, { apolloLinkSomething } from "@/app/lib/apollo_next";
 import ApolloClient from "apollo-client";
 import { WithAuthProps } from "@/app/lib/auth/with_auth";
 import { AppProviders } from "@/app/lib/app_providers";
-import App from "next/app";
+import App, { AppProps as NextAppProps } from "next/app";
 import { AccessToken } from "@/app/lib/auth/tokens/access_token";
 
-type Props = WithAuthProps & {
-  err?: any;
-  apollo: ApolloClient<{}>;
-};
+export type AppProps = NextAppProps &
+  WithAuthProps & {
+    children: any;
+    err?: any;
+    apollo: ApolloClient<{}>;
+  };
 
-class MyApp extends App<Props> {
+class MyApp extends App<AppProps> {
   render() {
-    console.log(Object.keys(this.props));
     const { Component, pageProps, apollo, err } = this.props;
 
     if (err) {
@@ -21,9 +22,7 @@ class MyApp extends App<Props> {
     }
 
     const token = new AccessToken(pageProps.jit);
-    console.log({ token });
-
-    apollo.link = apolloLinkSomething(new AccessToken(pageProps.jit));
+    apollo.link = apolloLinkSomething(token);
 
     return (
       <AppProviders apollo={apollo}>
@@ -32,6 +31,5 @@ class MyApp extends App<Props> {
     );
   }
 }
-
 
 export default withApollo(MyApp);

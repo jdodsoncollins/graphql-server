@@ -14,7 +14,7 @@ const Logout: NextPage<LogoutProps> = ({ logout }) => {
   };
 
   useEffect(() => {
-    handleLogout().catch(e => console.error(e));
+    handleLogout();
   }, []);
 
   return <h1>Logging Out...</h1>;

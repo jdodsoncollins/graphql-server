@@ -2,7 +2,6 @@ import { ApolloClient } from "apollo-client";
 import { InMemoryCache } from "apollo-cache-inmemory";
 import { ApolloLink } from "apollo-link";
 import { onError } from "apollo-link-error";
-import { setContext } from "apollo-link-context";
 import { HttpLink } from "apollo-boost";
 import fetch from "isomorphic-unfetch";
 import withNextApollo from "next-with-apollo";
@@ -21,15 +20,14 @@ export const httpLink = new HttpLink({
 });
 
 export const authLink = (accessToken?: AccessToken) => {
-  return setContext((_request, { headers }) => {
-    const result = {
+  return new ApolloLink((operation, forward) => {
+    operation.setContext(({ headers }: any) => ({
       headers: {
         ...headers,
         ...(accessToken && { Authorization: accessToken.authorizationString }),
       },
-    };
-    console.log("SET APOLLO LINK setContext", accessToken, result);
-    return result;
+    }));
+    return forward(operation);
   });
 };
 
@@ -43,9 +41,9 @@ export const apolloLinkSomething = (token: AccessToken) => {
 };
 
 export default withNextApollo(
-  ({ headers, initialState, ctx }) => {
+  ({ initialState, ctx }) => {
     console.log("with next apollo props");
-    console.log("withNextApollo", headers, initialState, parseCookies(ctx));
+    console.log("withNextApollo", parseCookies(ctx));
     return new ApolloClient({
       ssrMode: true,
       link: apolloLinkSomething(new AccessToken()),

@@ -1,20 +1,23 @@
-import Router from "next/router";
+// import Router from "next/router";
 import { NextPageContext } from "next";
 
-export const Redirect = (target: string, context?: NextPageContext) => {
-  if (context?.res) {
+export const Redirect = (target: string, ctx?: NextPageContext) => {
+  console.log("REDIRECTING....", target);
+  if (!!ctx?.res) {
+    console.log("REDIRECTING.... on the server");
     // server
     // 303: "See other"
-    context.res.writeHead(303, { Location: target });
-    context.res.end();
+    ctx.res.writeHead(303, { Location: target });
+    ctx.res.end();
   } else {
-    // In the browser, we just pretend like this never even happened ;)
-    Router.push(target);
+    console.log("ROUTER SHOULD BE PUSHING", target);
+    // Router.push(target);
+    document.location.pathname = target;
   }
 };
 
-export const redirectToLogin = async (ctx?: NextPageContext, doNotRedirectBack = false) => {
-  let redirectLink = ctx?.pathname ?? document.referrer;
+export const redirectToLogin = (ctx?: NextPageContext, doNotRedirectBack = false) => {
+  let redirectLink = ctx?.pathname ?? "";
 
   if (redirectLink) {
     redirectLink = `?redirectTo=${encodeURI(redirectLink)}`;
@@ -24,5 +27,5 @@ export const redirectToLogin = async (ctx?: NextPageContext, doNotRedirectBack =
     redirectLink = "";
   }
 
-  await Redirect(`/login${redirectLink}`, ctx);
+  Redirect(`/login${redirectLink}`, ctx);
 };
