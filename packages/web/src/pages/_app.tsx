@@ -1,23 +1,37 @@
 import React from "react";
+import withApollo, { apolloLinkSomething } from "@/app/lib/apollo_next";
+import ApolloClient from "apollo-client";
+import { WithAuthProps } from "@/app/lib/auth/with_auth";
+import { AppProviders } from "@/app/lib/app_providers";
 import App from "next/app";
-import { ApolloClient } from "apollo-boost";
-import { withApollo } from "@/app/lib/apollo_next";
-import { ApolloProvider } from "@apollo/react-hooks";
+import { AccessToken } from "@/app/lib/auth/tokens/access_token";
 
-interface Props {
+type Props = WithAuthProps & {
+  err?: any;
   apollo: ApolloClient<{}>;
-}
+};
 
 class MyApp extends App<Props> {
   render() {
-    const { Component, pageProps, apollo } = this.props;
+    console.log(Object.keys(this.props));
+    const { Component, pageProps, apollo, err } = this.props;
+
+    if (err) {
+      return <p>THERE IS AN ERROR: {JSON.stringify(err)}</p>;
+    }
+
+    const token = new AccessToken(pageProps.jit);
+    console.log({ token });
+
+    apollo.link = apolloLinkSomething(new AccessToken(pageProps.jit));
 
     return (
-      <ApolloProvider client={apollo}>
+      <AppProviders apollo={apollo}>
         <Component {...pageProps} />
-      </ApolloProvider>
+      </AppProviders>
     );
   }
 }
+
 
 export default withApollo(MyApp);

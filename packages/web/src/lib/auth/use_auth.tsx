@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { createContext, useContext, useState } from "react";
 
 import { AccessToken } from "@/app/lib/auth/tokens/access_token";
 import { RefreshToken } from "@/app/lib/auth/tokens/refresh_token";
@@ -8,12 +8,16 @@ import { LoginFormData } from "@/app/components/forms/login_form";
 export type AuthType = {
   login(data: LoginFormData): Promise<void>;
   logout(): Promise<void>;
+  revokeTokens(): Promise<void>;
   accessToken: AccessToken;
   refreshToken: RefreshToken;
   setAuth({ jit, jid }: { jit: string; jid: string }): void;
 };
 
-export const useAuth = (): AuthType | any => {
+// @ts-ignore
+const AuthContext = createContext<AuthType>();
+
+export const AuthProvider = (props: any): AuthType | any => {
   const [accessToken, setAccessToken] = useState();
   const [refreshToken, setRefreshToken] = useState();
 
@@ -28,30 +32,41 @@ export const useAuth = (): AuthType | any => {
     }
   };
 
-  const revokeTokens = async (userId: string) => {
-    await revokeTokenMutation({ variables: { userId } });
+  const revokeTokens = async () => {
+    const token = new AccessToken(accessToken);
+    if (token.isExpired || !token.decoded.userId) throw new Error("invalid token");
+    await revokeTokenMutation({ variables: { userId: token.decoded.userId } });
     await logout();
   };
 
   const logout = async () => {
     await logoutMutation();
-    await client!.resetStore();
+    await client?.resetStore();
     setAccessToken("");
     setRefreshToken("");
   };
 
   const setAuth = ({ jit, jid }: { jit: string; jid: string }) => {
-    console.log("set auth", jit, jid);
+    console.log("SET AUTH", jit[0], jid[0]);
     setAccessToken(jit);
     setRefreshToken(jid);
   };
 
-  return {
-    login,
-    logout,
-    revokeTokens,
-    setAuth,
-    accessToken: new AccessToken(accessToken),
-    refreshToken: new RefreshToken(refreshToken),
-  };
+  console.log("use auth function call", accessToken, refreshToken);
+
+  return (
+    <AuthContext.Provider
+      value={{
+        login,
+        logout,
+        revokeTokens,
+        setAuth,
+        accessToken: new AccessToken(accessToken),
+        refreshToken: new RefreshToken(refreshToken),
+      }}
+      {...props}
+    />
+  );
 };
+
+export const useAuth = () => useContext(AuthContext);

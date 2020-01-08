@@ -7,14 +7,15 @@ import { useAuth } from "@/app/lib/auth/use_auth";
 import { redirectToLogin } from "@/app/lib/redirect";
 import { AccessToken } from "@/app/lib/auth/tokens/access_token";
 
-type Props = {
+export type WithAuthProps = {
   jit: string;
   jid: string;
   isServer: boolean;
 };
 
 export function withAuth(WrappedComponent: NextPage<any>, guarded = false) {
-  const AuthenticatedRoute: NextPage<Props> = ({ jit, jid, isServer, ...props }: Props) => {
+  const AuthenticatedRoute: NextPage<WithAuthProps> = ({ jit, jid, isServer = false, ...props }) => {
+    // @ts-ignore
     const { setAuth, accessToken, ...auth } = useAuth();
     useEffect(() => {
       if (isServer) {
@@ -25,7 +26,9 @@ export function withAuth(WrappedComponent: NextPage<any>, guarded = false) {
     return <WrappedComponent accessToken={accessToken} {...auth} {...props} />;
   };
 
-  AuthenticatedRoute.getInitialProps = async (ctx: NextPageContext) => {
+  AuthenticatedRoute.getInitialProps = async (ctx: NextPageContext & any) => {
+    console.log("auth route get initial props");
+
     const isServer = !!ctx.req;
 
     if (isServer) {

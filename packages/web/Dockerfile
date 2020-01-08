@@ -8,7 +8,7 @@ RUN npm ci --production=false
 COPY codegen.yml .schema.graphql .graphqlconfig /app/
 COPY next* /app/
 COPY tsconfig* /app/
-COPY public /app/public/
+COPY public-nginx /app/public/
 COPY graphql /app/graphql/
 COPY styles /app/styles/
 COPY src /app/src/

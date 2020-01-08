@@ -2,7 +2,7 @@ import { NextPage } from "next";
 import React, { useEffect } from "react";
 
 import { withLayout } from "@/app/components/layouts/layout";
-import { Redirect } from "@/app/lib/redirect";
+import { redirectToLogin } from "@/app/lib/redirect";
 import { AuthType } from "@/app/lib/auth/use_auth";
 
 type LogoutProps = AuthType & {};
@@ -10,7 +10,7 @@ type LogoutProps = AuthType & {};
 const Logout: NextPage<LogoutProps> = ({ logout }) => {
   const handleLogout = async () => {
     await logout();
-    await Redirect("/login");
+    await redirectToLogin();
   };
 
   useEffect(() => {
