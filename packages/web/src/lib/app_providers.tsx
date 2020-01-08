@@ -8,9 +8,7 @@ export const AppProviders = ({ children, apollo }: any) => {
   return (
     <ApolloProvider client={apollo}>
       <AuthProvider>
-        <UserProvider>
-          {children}
-        </UserProvider>
+        <UserProvider>{children}</UserProvider>
       </AuthProvider>
     </ApolloProvider>
   );

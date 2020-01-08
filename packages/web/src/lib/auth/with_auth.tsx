@@ -1,10 +1,11 @@
 import React, { useEffect } from "react";
+import { parseCookies } from "nookies";
 import { NextPage, NextPageContext } from "next";
 
-import { useAuth } from "@/app/lib/auth/use_auth";
 import { updateExpiredToken } from "@/app/lib/auth/update_expired_token";
-import { AccessToken } from "@/app/lib/auth/tokens/access_token";
-import { parseCookies } from "nookies";
+import { useAuth } from "@/app/lib/auth/use_auth";
+import { useRouter } from "next/router";
+import { getRedirectLink } from "@/app/lib/redirect";
 
 export type WithAuthProps = {
   jit: string;
@@ -12,44 +13,42 @@ export type WithAuthProps = {
   isServer: boolean;
 };
 
-export function withAuth(WrappedComponent: NextPage<any>, _guarded = false) {
+export const isServer = () => typeof window === "undefined";
+
+export function withAuth(WrappedComponent: NextPage<any>, guarded = false) {
   const AuthenticatedRoute: NextPage<WithAuthProps> = ({ jit, jid, isServer = false, ...props }) => {
-    const { setAuth, accessToken, ...auth } = useAuth();
+    const { setAuth, accessToken } = useAuth();
+    const router = useRouter();
 
-    console.log({_guarded, props});
+    useEffect(() => {
+      if (isServer) {
+        setAuth({ jit, jid });
+      }
+    }, [accessToken.token]);
 
+    useEffect(() => {
+      if (guarded && accessToken.isExpired) {
+        router.replace(getRedirectLink(router.pathname));
+      }
+    }, [accessToken.token]);
 
-    // useEffect(() => {
-    //   if (isServer) {
-    //     setAuth({ jit, jid });
-    //   }
-    // }, [accessToken.authorizationString]);
-
-    return <WrappedComponent {...auth} {...props} />;
+    return <WrappedComponent {...props} />;
   };
 
   AuthenticatedRoute.getInitialProps = async (ctx: NextPageContext & any) => {
-    console.log("auth route get initial props", ctx);
-
-    const isServer = !!ctx.req;
+    let isServer = !!ctx.req;
+    let jid = "";
+    let jit = "";
 
     if (isServer) {
-      const { jid = "" } = parseCookies(ctx);
-      const accessToken = new AccessToken(await updateExpiredToken(jid));
-
-      console.log("access token expired: ", accessToken.isExpired);
-      console.log("SHOULD BE REDIRECTING????");
+      jid = parseCookies(ctx).jid ?? "";
+      jit = await updateExpiredToken(jid);
     }
-
-    // if (_guarded && accessToken.isExpired) {
-    //     console.log("SHOULD BE REDIRECTING");
-    //     redirectToLogin(ctx);
-    //   }
 
     return {
       ...(WrappedComponent.getInitialProps && (await WrappedComponent.getInitialProps(ctx))),
-      // jit: accessToken.token,
-      // jid,
+      jid,
+      jit,
       isServer,
     };
   };

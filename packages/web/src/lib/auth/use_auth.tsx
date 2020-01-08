@@ -6,7 +6,7 @@ import { useLoginMutation, useLogoutMutation, useRevokeRefreshTokensForUserMutat
 import { LoginFormData } from "@/app/components/forms/login_form";
 
 export type AuthType = {
-  login(data: LoginFormData): Promise<void>;
+  login(data: LoginFormData, redirectTo?: string): Promise<void>;
   logout(): Promise<void>;
   revokeTokens(): Promise<void>;
   accessToken: AccessToken;
@@ -25,11 +25,18 @@ export const AuthProvider = (props: any) => {
   const [logoutMutation, { client }] = useLogoutMutation();
   const [revokeTokenMutation] = useRevokeRefreshTokensForUserMutation();
 
-  const login = async (data: LoginFormData) => {
+  const login = async (data: LoginFormData, redirectTo?: string) => {
     const response = await loginMutation({ variables: { data } });
     if (response.data) {
       setAccessToken(response.data.login.accessToken);
     }
+
+    if (!redirectTo || redirectTo === "" || redirectTo.includes("/login")) {
+      redirectTo = "/dashboard";
+    } else if (Array.isArray(redirectTo)) {
+      redirectTo = redirectTo[0];
+    }
+    (window as any).location = redirectTo;
   };
 
   const revokeTokens = async () => {
@@ -40,15 +47,12 @@ export const AuthProvider = (props: any) => {
   };
 
   const logout = async () => {
-    alert("LOGOUT");
     await logoutMutation();
     await client?.resetStore();
-    setAccessToken("");
-    setRefreshToken("");
+    setAuth({ jit: "", jid: "" });
   };
 
   const setAuth = ({ jit, jid }: { jit: string; jid: string }) => {
-    // console.log("SET AUTH", jit[0], jid[0]);
     setAccessToken(jit);
     setRefreshToken(jid);
   };

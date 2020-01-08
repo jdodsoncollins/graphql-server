@@ -1,4 +1,4 @@
-// import Router from "next/router";
+import Router from "next/router";
 import { NextPageContext } from "next";
 
 export const Redirect = (target: string, ctx?: NextPageContext) => {
@@ -11,15 +11,12 @@ export const Redirect = (target: string, ctx?: NextPageContext) => {
     ctx.res.end();
   } else {
     console.log("ROUTER SHOULD BE PUSHING", target);
-    // Router.push(target);
-    document.location.pathname = target;
+    Router.push(target);
   }
 };
 
-export const redirectToLogin = (ctx?: NextPageContext, doNotRedirectBack = false) => {
-  let redirectLink = ctx?.pathname ?? "";
-
-  if (redirectLink) {
+export function getRedirectLink(redirectLink: string, doNotRedirectBack = false) {
+  if (redirectLink && redirectLink !== "") {
     redirectLink = `?redirectTo=${encodeURI(redirectLink)}`;
   }
 
@@ -27,5 +24,5 @@ export const redirectToLogin = (ctx?: NextPageContext, doNotRedirectBack = false
     redirectLink = "";
   }
 
-  Redirect(`/login${redirectLink}`, ctx);
-};
+  return `/login${redirectLink}`;
+}

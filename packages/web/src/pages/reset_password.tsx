@@ -1,6 +1,5 @@
 import { FormikHelpers } from "formik";
-import { WithRouterProps } from "next/dist/client/with-router";
-import { withRouter } from "next/router";
+import { useRouter } from "next/router";
 import { NextPage } from "next";
 import dynamic from "next/dynamic";
 import React from "react";
@@ -8,20 +7,17 @@ import React from "react";
 import { withLayout } from "@/app/components/layouts/layout";
 import { useUpdatePasswordFromTokenMutation, useValidateForgotPasswordTokenMutation } from "@/generated/graphql";
 import { ResetPasswordFormData } from "@/app/components/forms/reset_password_form";
-import { redirectToLogin } from "@/app/lib/redirect";
 
-type Props = WithRouterProps & {
+type Props = {
   token: string;
   email: string;
 };
 
 const ResetPasswordForm = dynamic(() => import("@/app/components/forms/reset_password_form"), { ssr: false });
 
-const ResetPassword: NextPage<Props> = ({
-  router: {
-    query: { e, u },
-  },
-}) => {
+const ResetPassword: NextPage<Props> = () => {
+  const router = useRouter();
+  const { query: { e, u } } = router;
   const email = Array.isArray(e) ? e[0] : e;
   const token = Array.isArray(u) ? u[0] : u;
   const [updatePasswordMutation] = useUpdatePasswordFromTokenMutation();
@@ -33,7 +29,7 @@ const ResetPassword: NextPage<Props> = ({
     });
     await updatePasswordMutation({ variables: { data } });
     setSubmitting(false);
-    await redirectToLogin();
+    await router.push("/login");
   };
 
   return (
@@ -44,6 +40,6 @@ const ResetPassword: NextPage<Props> = ({
   );
 };
 
-export default withLayout(withRouter(ResetPassword), {
+export default withLayout(ResetPassword, {
   title: "Reset Password Page",
 });

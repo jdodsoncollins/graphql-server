@@ -8,7 +8,7 @@ import { Header } from "@/app/components/layouts/partials/header";
 import { colors } from "@/styles/theme";
 import { withAuth } from "@/app/lib/auth/with_auth";
 import { Token } from "@/app/components/token";
-import { AuthType } from "@/app/lib/auth/use_auth";
+import { AuthType, useAuth } from "@/app/lib/auth/use_auth";
 
 type LayoutProps = AuthType & {};
 
@@ -22,6 +22,7 @@ export const withLayout = (
   { title = "Default Page Title", protectedRoute = false }: Settings
 ) => {
   const Layout: NextPage<LayoutProps> = props => {
+    const { accessToken, refreshToken } = useAuth();
     return (
       <React.StrictMode>
         <Head>
@@ -35,7 +36,7 @@ export const withLayout = (
             display: flex;
             flex-direction: column;
             color: ${colors.black};
-            background-color: ${colors.blue["500"]};
+            background-color: ${colors.gray["500"]};
           `}
         >
           <Header {...props} />
@@ -43,10 +44,10 @@ export const withLayout = (
             className={css`
               flex: 1;
               color: ${colors.black};
-              background-color: ${colors.blue["300"]};
+              background-color: ${colors.gray["300"]};
             `}
           >
-            <Token {...props} />
+            <Token accessToken={accessToken} refreshToken={refreshToken} />
             <WrappedComponent {...props} />
           </div>
         </main>

@@ -4,8 +4,8 @@ import React from "react";
 
 import { useRegisterMutation } from "@/generated/graphql";
 import { withLayout } from "@/app/components/layouts/layout";
-import { redirectToLogin } from "@/app/lib/redirect";
 import dynamic from "next/dynamic";
+import { useRouter } from "next/router";
 
 export const validEmail = /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i;
 
@@ -20,6 +20,7 @@ const RegisterForm = dynamic(() => import("@/app/components/forms/register_form"
 
 const Register: NextPage<{}> = () => {
   const [register] = useRegisterMutation();
+  const router = useRouter();
 
   const handleSubmit = async (
     registerFormData: RegisterFormData,
@@ -31,7 +32,7 @@ const Register: NextPage<{}> = () => {
       setStatus(e.message);
     }
     setSubmitting(false);
-    await redirectToLogin(undefined, true);
+    await router.push("/login");
   };
 
   return (

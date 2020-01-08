@@ -1,16 +1,14 @@
 import { FormikHelpers } from "formik";
 import { NextPage } from "next";
-import { withRouter } from "next/router";
 import React from "react";
 
 import { withLayout } from "@/app/components/layouts/layout";
-import { WithRouterProps } from "next/dist/client/with-router";
 import { ForgotPasswordFormData } from "@/app/components/forms/forgot_password_form";
 import { useSendForgotPasswordEmailMutation } from "@/generated/graphql";
 import { Redirect } from "@/app/lib/redirect";
 import dynamic from "next/dynamic";
 
-type Props = WithRouterProps & {};
+type Props = {};
 
 const ForgotPasswordForm = dynamic(() => import("@/app/components/forms/forgot_password_form"), { ssr: false });
 
@@ -34,6 +32,6 @@ const ForgotPassword: NextPage<Props> = () => {
   );
 };
 
-export default withLayout(withRouter(ForgotPassword), {
+export default withLayout(ForgotPassword, {
   title: "Login Page",
 });
