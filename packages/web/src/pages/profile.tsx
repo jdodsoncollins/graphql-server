@@ -1,24 +1,26 @@
 import React from "react";
 import { NextPage } from "next";
 
-import { withLayout } from "@/app/components/layouts/layout";
+import Layout from "@/app/components/layouts/layout";
 import { useMeQuery } from "@/generated/graphql";
+import { withAuth } from "@/app/lib/auth/with_auth";
 
 const Profile: NextPage = () => {
   const { data, loading, error } = useMeQuery({ fetchPolicy: "network-only" });
-  // console.log({ data, loading, error });
+
+  let content: any = <div>Something went wrong!</div>;
 
   if (loading) {
-    return <div>Loading...</div>;
+    content = <div>Loading...</div>;
   }
 
   if (error) {
-    return <div>Error {JSON.stringify(error)}</div>;
+    content = <div>Error {JSON.stringify(error)}</div>;
   }
 
   if (data) {
     const { me } = data;
-    return (
+    content = (
       <div>
         <p>{me.uuid}</p>
         <p>{me.email}</p>
@@ -27,10 +29,7 @@ const Profile: NextPage = () => {
     );
   }
 
-  return <div>Something went wrong!</div>;
+  return <Layout>{content}</Layout>;
 };
 
-export default withLayout(Profile, {
-  protectedRoute: true,
-  title: "User profile",
-});
+export default withAuth(Profile, true);

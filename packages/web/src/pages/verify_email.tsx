@@ -2,14 +2,17 @@ import { NextPage } from "next";
 import { useRouter } from "next/router";
 import React, { useEffect, useState } from "react";
 
-import { withLayout } from "@/app/components/layouts/layout";
+import Layout from "@/app/components/layouts/layout";
 import { useVerifyEmailConfirmationMutation } from "@/generated/graphql";
 import { Redirect } from "@/app/lib/redirect";
+import { withAuth } from "@/app/lib/auth/with_auth";
 
 type Props = {};
 
 const VerifyUser: NextPage<Props> = () => {
-  const { query: { e, u } } = useRouter();
+  const {
+    query: { e, u },
+  } = useRouter();
   const email = Array.isArray(e) ? e[0] : e;
   const uuid = Array.isArray(u) ? u[0] : u;
   const verifyEmailData = { email, uuid };
@@ -32,9 +35,11 @@ const VerifyUser: NextPage<Props> = () => {
     handleVerifyUser().catch(e => console.error(e));
   }, []);
 
-  return <h1 className="h5">{status}</h1>;
+  return (
+    <Layout title={"Verify User Page"}>
+      <h1 className="h5">{status}</h1>
+    </Layout>
+  );
 };
 
-export default withLayout(VerifyUser, {
-  title: "VerifyUser Page",
-});
+export default withAuth(VerifyUser);

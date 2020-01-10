@@ -4,10 +4,9 @@ import { css } from "@emotion/core";
 
 import { Link } from "@/app/components/link";
 import { colors } from "@/styles/theme";
-import { AuthType } from "@/app/lib/auth/use_auth";
 import { useUser } from "@/app/lib/auth/use_user";
 
-type Props = AuthType & {};
+type Props = {};
 
 export const Header: React.FC<Props> = () => {
   const user = useUser();

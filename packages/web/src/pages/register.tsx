@@ -1,11 +1,12 @@
+import dynamic from "next/dynamic";
+import { useRouter } from "next/router";
 import { FormikHelpers } from "formik";
 import { NextPage } from "next";
 import React from "react";
 
 import { useRegisterMutation } from "@/generated/graphql";
-import { withLayout } from "@/app/components/layouts/layout";
-import dynamic from "next/dynamic";
-import { useRouter } from "next/router";
+import Layout from "@/app/components/layouts/layout";
+import { withAuth } from "@/app/lib/auth/with_auth";
 
 export const validEmail = /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i;
 
@@ -36,13 +37,11 @@ const Register: NextPage<{}> = () => {
   };
 
   return (
-    <>
+    <Layout title="Register Page">
       <h1>Register Page</h1>
       <RegisterForm handleSubmit={handleSubmit} />
-    </>
+    </Layout>
   );
 };
 
-export default withLayout(Register, {
-  title: "Register Page",
-});
+export default withAuth(Register);

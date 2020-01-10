@@ -2,11 +2,12 @@ import { FormikHelpers } from "formik";
 import { NextPage } from "next";
 import React from "react";
 
-import { withLayout } from "@/app/components/layouts/layout";
+import Layout from "@/app/components/layouts/layout";
 import { ForgotPasswordFormData } from "@/app/components/forms/forgot_password_form";
 import { useSendForgotPasswordEmailMutation } from "@/generated/graphql";
 import { Redirect } from "@/app/lib/redirect";
 import dynamic from "next/dynamic";
+import { withAuth } from "@/app/lib/auth/with_auth";
 
 type Props = {};
 
@@ -25,13 +26,11 @@ const ForgotPassword: NextPage<Props> = () => {
   };
 
   return (
-    <>
+    <Layout title={"Forgot Password Page"}>
       <h1 className="h5">Forgot Password Page</h1>
       <ForgotPasswordForm handleSubmit={handleSubmit} />
-    </>
+    </Layout>
   );
 };
 
-export default withLayout(ForgotPassword, {
-  title: "Login Page",
-});
+export default withAuth(ForgotPassword);

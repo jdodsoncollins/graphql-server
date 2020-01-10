@@ -2,7 +2,8 @@ import React from "react";
 import { NextPage } from "next";
 
 import { useUsersQuery } from "@/generated/graphql";
-import { withLayout } from "@/app/components/layouts/layout";
+import Layout from "@/app/components/layouts/layout";
+import { withAuth } from "@/app/lib/auth/with_auth";
 
 const Index: NextPage<any> = () => {
   const { data } = useUsersQuery({ fetchPolicy: "network-only" });
@@ -22,9 +23,7 @@ const Index: NextPage<any> = () => {
     );
   }
 
-  return <div>{body}</div>;
+  return <Layout title={"Hi ya slugger"}>{body}</Layout>;
 };
 
-export default withLayout(Index, {
-  title: "Hi ya slugger",
-});
+export default withAuth(Index);

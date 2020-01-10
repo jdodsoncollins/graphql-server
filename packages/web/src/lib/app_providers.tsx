@@ -4,10 +4,10 @@ import { AuthProvider } from "@/app/lib/auth/use_auth";
 import { ApolloProvider } from "@apollo/react-common";
 import { UserProvider } from "@/app/lib/auth/use_user";
 
-export const AppProviders = ({ children, apollo }: any) => {
+export const AppProviders = ({ children, apollo, accessToken, refreshToken }: any) => {
   return (
     <ApolloProvider client={apollo}>
-      <AuthProvider>
+      <AuthProvider accessToken={accessToken} refreshToken={refreshToken}>
         <UserProvider>{children}</UserProvider>
       </AuthProvider>
     </ApolloProvider>

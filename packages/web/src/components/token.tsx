@@ -1,16 +1,18 @@
 import { css } from "emotion";
 import * as React from "react";
-import { FunctionComponent } from "react";
 
 import { AccessToken } from "@/app/lib/auth/tokens/access_token";
 import { RefreshToken } from "@/app/lib/auth/tokens/refresh_token";
+import { useAuth } from "@/app/lib/auth/use_auth";
 
-type Prop = {
+export type AccessTokenProps = {
   accessToken: AccessToken;
   refreshToken: RefreshToken;
 };
 
-export const Token: FunctionComponent<Prop> = ({ accessToken, refreshToken }) => {
+export const Token: React.FC = () => {
+  const { accessToken, refreshToken } = useAuth();
+
   const getTokenExp = (token: string) => {
     return token.substr(0, 4) + "..." + token.substr(token.length - 4, 4);
   };

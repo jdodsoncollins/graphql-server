@@ -4,9 +4,10 @@ import { useRouter } from "next/router";
 import dynamic from "next/dynamic";
 import React from "react";
 
-import { withLayout } from "@/app/components/layouts/layout";
+import Layout from "@/app/components/layouts/layout";
 import { LoginFormData } from "@/app/components/forms/login_form";
 import { useAuth } from "@/app/lib/auth/use_auth";
+import { withAuth } from "@/app/lib/auth/with_auth";
 
 type Props = {};
 
@@ -28,13 +29,11 @@ const LoginPage: NextPage<Props> = () => {
   };
 
   return (
-    <>
+    <Layout title="This is my title">
       <h1 className="h5">Login Page</h1>
       <LoginForm handleSubmit={handleSubmit} />
-    </>
+    </Layout>
   );
 };
 
-export default withLayout(LoginPage, {
-  title: "Login Page",
-});
+export default withAuth(LoginPage);

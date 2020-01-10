@@ -21,6 +21,7 @@ export const httpLink = new HttpLink({
 
 export const authLink = (accessToken?: AccessToken) => {
   return new ApolloLink((operation, forward) => {
+    console.log("APOLLO LINK SET", "auth link set", accessToken);
     operation.setContext(({ headers }: any) => ({
       headers: {
         ...headers,
@@ -40,7 +41,7 @@ export const apolloLinkSomething = (token: AccessToken) => {
   return ApolloLink.from([refreshLink, authLink(token), errorLink, httpLink]);
 };
 
-export default withNextApollo(
+export const withApollo = withNextApollo(
   ({ initialState, ctx }) => {
     console.log("with next apollo props");
     console.log("withNextApollo", parseCookies(ctx));
