@@ -14,12 +14,12 @@ type Props = AppProps & {
 class MyApp extends App<Props> {
   render() {
     const { Component, pageProps, apollo } = this.props;
-    const accessToken = new AccessToken(pageProps.jit);
-    const refreshToken = new RefreshToken(pageProps.jid);
-    console.log({ pageProps, accessToken });
-
     return (
-      <AppProviders apollo={apollo} accessToken={accessToken} refreshToken={refreshToken}>
+      <AppProviders
+        apollo={apollo}
+        accessToken={new AccessToken(pageProps.jit)}
+        refreshToken={new RefreshToken(pageProps.jid)}
+      >
         <Component {...pageProps} />
       </AppProviders>
     );

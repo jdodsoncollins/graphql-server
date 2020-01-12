@@ -13,20 +13,26 @@ import { AccessTokenProps } from "@/app/components/token";
 type Props = {
   jid: string;
   jit: string;
+  isServer: boolean;
 };
 
 export function withAuth(WrappedComponent: any, guarded = false) {
   const AuthenticatedRoute: NextPage<Props> = props => {
-    const { jid, jit } = props;
-    const { accessToken, refreshToken, setAuth } = useAuth();
+    const { jid, jit, isServer } = props;
+    const { accessToken, setAuth } = useAuth();
     const router = useRouter();
 
     useEffect(() => {
-      console.log("before before");
-      setAuth(refreshToken.token, jit);
-      console.log("before", accessToken.isValid, !refreshToken.isExpired);
-      setInMemoryAuth({ accessToken, refreshToken });
-      console.log("after", accessToken.isValid, !refreshToken.isExpired);
+      if (isServer || accessToken.isExpired) {
+        setInMemoryAuth({
+          accessToken: new AccessToken(jit),
+          refreshToken: new RefreshToken(jid),
+        });
+      }
+
+      if (accessToken.isExpired) {
+        setAuth(jid, jit);
+      }
 
       if (guarded && accessToken.isExpired) {
         router.replace(getRedirectLink(router.pathname));
@@ -45,26 +51,29 @@ export function withAuth(WrappedComponent: any, guarded = false) {
       refreshToken = new RefreshToken(parseCookies(ctx).jid);
     } else {
       const auth = getFromInMemory();
+      console.log("get from in memory", { auth, accessValid: auth.accessToken.isValid });
       accessToken = auth.accessToken;
       refreshToken = auth.refreshToken;
     }
 
-    accessToken = await updateExpiredToken(refreshToken, accessToken);
+    if (isServer || !!accessToken?.isExpired) {
+      accessToken = await updateExpiredToken(refreshToken, accessToken);
+    }
 
     console.log({
-      FORJASON: "JASON JASON",
-      jid: refreshToken.token,
-      jit: accessToken.token,
+      withAuth: "get initial props",
+      refreshTokenValid: !refreshToken.isExpired,
+      accessTokenValid: accessToken?.isValid,
     });
 
-    if (guarded && accessToken.isExpired) {
+    if (guarded && !!accessToken?.isExpired) {
       Redirect(getRedirectLink(ctx.pathname), ctx);
     }
 
     return {
       ...(WrappedComponent.getInitialProps && (await WrappedComponent.getInitialProps(ctx))),
       jid: refreshToken.token,
-      jit: accessToken.token,
+      jit: accessToken?.token ?? "",
       isServer,
     };
   };

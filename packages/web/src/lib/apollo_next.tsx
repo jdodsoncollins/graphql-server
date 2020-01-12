@@ -7,9 +7,8 @@ import fetch from "isomorphic-unfetch";
 import withNextApollo from "next-with-apollo";
 import getConfig from "next/config";
 
-import { AccessToken } from "@/app/lib/auth/tokens/access_token";
 import { refreshLink } from "@/app/lib/apollo_token_refresh_link";
-import { parseCookies } from "nookies";
+import { getFromInMemory } from "@/app/lib/auth/with_auth";
 
 const { publicRuntimeConfig } = getConfig();
 
@@ -19,35 +18,27 @@ export const httpLink = new HttpLink({
   fetch,
 });
 
-export const authLink = (accessToken?: AccessToken) => {
-  return new ApolloLink((operation, forward) => {
-    console.log("APOLLO LINK SET", "auth link set", accessToken);
-    operation.setContext(({ headers }: any) => ({
-      headers: {
-        ...headers,
-        ...(accessToken && { Authorization: accessToken.authorizationString }),
-      },
-    }));
-    return forward(operation);
-  });
-};
+export const authLink = new ApolloLink((operation, forward) => {
+  const { accessToken } = getFromInMemory();
+  operation.setContext(({ headers }: any) => ({
+    headers: {
+      ...headers,
+      ...(accessToken.isValid && { Authorization: accessToken.authorizationString }),
+    },
+  }));
+  return forward(operation);
+});
 
 export const errorLink = onError(({ graphQLErrors, networkError }) => {
   console.error("apollo next error");
   console.error({ graphQLErrors, networkError });
 });
 
-export const apolloLinkSomething = (token: AccessToken) => {
-  return ApolloLink.from([refreshLink, authLink(token), errorLink, httpLink]);
-};
-
 export const withApollo = withNextApollo(
-  ({ initialState, ctx }) => {
-    console.log("with next apollo props");
-    console.log("withNextApollo", parseCookies(ctx));
+  ({ initialState }) => {
     return new ApolloClient({
       ssrMode: true,
-      link: apolloLinkSomething(new AccessToken()),
+      link: ApolloLink.from([refreshLink, authLink, errorLink, httpLink]),
       cache: new InMemoryCache().restore(initialState || {}),
     });
   },
