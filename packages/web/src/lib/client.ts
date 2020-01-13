@@ -27,7 +27,8 @@ const client = async (url: string, { body, ...customConfig }: RequestInit = {}) 
     url = `${publicRuntimeConfig.API_URL}${url}`;
   }
   const response = await fetch(url, config);
-  return await response.json();
+  const result = await response.json();
+  return result;
 };
 
 const isValidUrl = (url: string) => {

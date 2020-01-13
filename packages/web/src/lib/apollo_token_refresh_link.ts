@@ -1,13 +1,12 @@
 import client from "@/app/lib/client";
 import { TokenRefreshLink } from "apollo-link-token-refresh";
 
-export const refreshAccessToken = (jid = ""): Promise<{ success: boolean; accessToken: string }> | any => {
+export const refreshAccessToken = (): Promise<{ success: boolean; accessToken: string }> | any => {
   return client("/auth/refresh_token", {
     method: "POST",
     credentials: "include",
     headers: {
       "Content-Type": "application/json",
-      cookie: `jid=${jid}`,
     },
   });
 };

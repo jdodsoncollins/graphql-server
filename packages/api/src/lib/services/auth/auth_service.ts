@@ -9,9 +9,9 @@ import { ENV } from "@/lib/constants/config";
 
 @injectable()
 export class AuthService {
-  private readonly accessTokenTimeout = "10s";
-  private readonly refreshTokenTimeout = "2m";
-  private readonly refreshTokenTimeoutRemember = "5m";
+  private readonly accessTokenTimeout = "15s";
+  private readonly refreshTokenTimeout = "10m";
+  private readonly refreshTokenTimeoutRemember = "20m";
 
   constructor(@inject(REPOSITORY.UserRepository) private userRepository: IUserRepository) {}
 

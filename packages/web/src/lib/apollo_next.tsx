@@ -19,7 +19,7 @@ export const httpLink = new HttpLink({
 });
 
 export const authLink = new ApolloLink((operation, forward) => {
-  const { accessToken } = getFromInMemory();
+  const accessToken = getFromInMemory();
   operation.setContext(({ headers }: any) => ({
     headers: {
       ...headers,

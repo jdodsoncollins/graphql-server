@@ -27,8 +27,6 @@ const ResetPasswordForm = ({ handleSubmit, token, email }: Props) => {
     return errors;
   };
 
-  console.log({ email });
-
   return (
     <Formik<ResetPasswordFormData>
       initialValues={{ email, token, password: "" }}

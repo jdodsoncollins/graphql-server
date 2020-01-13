@@ -1,5 +1,4 @@
 import React, { useEffect } from "react";
-import { parseCookies } from "nookies";
 import { NextPage, NextPageContext } from "next";
 import { useRouter } from "next/router";
 
@@ -7,8 +6,6 @@ import { updateExpiredToken } from "@/app/lib/auth/update_expired_token";
 import { useAuth } from "@/app/lib/auth/use_auth";
 import { getRedirectLink, Redirect } from "@/app/lib/redirect";
 import { AccessToken } from "@/app/lib/auth/tokens/access_token";
-import { RefreshToken } from "@/app/lib/auth/tokens/refresh_token";
-import { AccessTokenProps } from "@/app/components/token";
 
 type Props = {
   jid: string;
@@ -18,60 +15,47 @@ type Props = {
 
 export function withAuth(WrappedComponent: any, guarded = false) {
   const AuthenticatedRoute: NextPage<Props> = props => {
-    const { jid, jit, isServer } = props;
-    const accessToken = new AccessToken(jit);
-    const refreshToken = new RefreshToken(jid);
+    const { isServer } = props;
 
     const router = useRouter();
-    const { setAuth } = useAuth();
+    const { accessToken, setAccessToken } = useAuth();
 
     useEffect(() => {
       if (isServer || accessToken.isExpired) {
-        setAuth({ accessToken, refreshToken });
+        setInMemoryAuth(accessToken);
+        setAccessToken(accessToken);
       }
-    }, [accessToken.token + refreshToken.token]);
+    }, [accessToken.token]);
 
     useEffect(() => {
       if (guarded && accessToken.isExpired) {
+        console.log("REDIRECT EM");
         router.replace(getRedirectLink(router.pathname));
       }
-    }, [accessToken.token + refreshToken.token]);
+    }, [accessToken.token]);
 
     return <WrappedComponent {...props} />;
   };
 
-  AuthenticatedRoute.getInitialProps = async (ctx: NextPageContext & any) => {
+  AuthenticatedRoute.getInitialProps = async (ctx: NextPageContext) => {
     let isServer = !!ctx.req;
-    let accessToken: AccessToken | undefined;
-    let refreshToken: RefreshToken;
+    let accessToken: AccessToken = getFromInMemory();
 
-    if (isServer) {
-      refreshToken = new RefreshToken(parseCookies(ctx).jid);
-    } else {
-      const auth = getFromInMemory();
-      console.log("get from in memory", { auth, accessValid: auth.accessToken.isValid });
-      accessToken = auth.accessToken;
-      refreshToken = auth.refreshToken;
+    if (isServer || accessToken.isExpired) {
+      console.log("is server", isServer);
+      console.log("is expired", accessToken.isExpired);
+      accessToken = await updateExpiredToken();
+      console.log("is expired", accessToken.isExpired);
     }
 
-    if (isServer || !!accessToken?.isExpired) {
-      accessToken = await updateExpiredToken(refreshToken, accessToken);
-    }
-
-    console.log({
-      withAuth: "get initial props",
-      refreshTokenValid: !refreshToken.isExpired,
-      accessTokenValid: accessToken?.isValid,
-    });
-
-    if (guarded && !!accessToken?.isExpired) {
+    if (guarded && accessToken.isExpired) {
+      console.log("I SHOULD BE REDIRECTED HOME");
       Redirect(getRedirectLink(ctx.pathname), ctx);
     }
 
     return {
       ...(WrappedComponent.getInitialProps && (await WrappedComponent.getInitialProps(ctx))),
-      jid: refreshToken.token,
-      jit: accessToken?.token ?? "",
+      jit: accessToken.token,
       isServer,
     };
   };
@@ -80,20 +64,14 @@ export function withAuth(WrappedComponent: any, guarded = false) {
 }
 
 let inMemoryAccessToken = new AccessToken();
-let inMemoryRefreshToken = new RefreshToken();
 
 export const getFromInMemory = () => {
-  return {
-    accessToken: inMemoryAccessToken,
-    refreshToken: inMemoryRefreshToken,
-  };
+  return inMemoryAccessToken;
 };
 
-export const setInMemoryAuth = ({ accessToken, refreshToken }: AccessTokenProps) => {
+export const setInMemoryAuth = (accessToken: AccessToken) => {
   if (typeof window === "undefined") {
     throw new Error("only set in memory tokens on the browser");
   }
   inMemoryAccessToken = accessToken;
-  inMemoryRefreshToken = refreshToken;
-  console.log({ inMemoryAccessToken, inMemoryRefreshToken });
 };
