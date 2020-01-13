@@ -10,7 +10,7 @@ export type AccessTokenProps = {
   refreshToken: RefreshToken;
 };
 
-export const Token: React.FC = () => {
+export const Token: React.FC<{}> = () => {
   const { accessToken, refreshToken } = useAuth();
 
   const getTokenExp = (token: string) => {

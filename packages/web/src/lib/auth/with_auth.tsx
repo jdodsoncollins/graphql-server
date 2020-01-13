@@ -19,25 +19,23 @@ type Props = {
 export function withAuth(WrappedComponent: any, guarded = false) {
   const AuthenticatedRoute: NextPage<Props> = props => {
     const { jid, jit, isServer } = props;
-    const { accessToken, setAuth } = useAuth();
+    const accessToken = new AccessToken(jit);
+    const refreshToken = new RefreshToken(jid);
+
     const router = useRouter();
+    const { setAuth } = useAuth();
 
     useEffect(() => {
       if (isServer || accessToken.isExpired) {
-        setInMemoryAuth({
-          accessToken: new AccessToken(jit),
-          refreshToken: new RefreshToken(jid),
-        });
+        setAuth({ accessToken, refreshToken });
       }
+    }, [accessToken.token + refreshToken.token]);
 
-      if (accessToken.isExpired) {
-        setAuth(jid, jit);
-      }
-
+    useEffect(() => {
       if (guarded && accessToken.isExpired) {
         router.replace(getRedirectLink(router.pathname));
       }
-    }, [jit + "_" + jid]);
+    }, [accessToken.token + refreshToken.token]);
 
     return <WrappedComponent {...props} />;
   };

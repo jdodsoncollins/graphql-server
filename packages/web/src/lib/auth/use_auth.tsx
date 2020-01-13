@@ -5,20 +5,24 @@ import { AccessToken } from "@/app/lib/auth/tokens/access_token";
 import { RefreshToken } from "@/app/lib/auth/tokens/refresh_token";
 import { useLoginMutation, useLogoutMutation, useRevokeRefreshTokensForUserMutation } from "@/generated/graphql";
 import { AccessTokenProps } from "@/app/components/token";
+import { setInMemoryAuth } from "@/app/lib/auth/with_auth";
 
 export type AuthType = AccessTokenProps & {
   login(data: LoginFormData, redirectTo?: string): Promise<void>;
   logout(): Promise<void>;
   revokeTokens(): Promise<void>;
-  setAuth(jid: string, jit: string): void;
+  setAuth(auth: AccessTokenProps): void;
 };
 
 // @ts-ignore
 const AuthContext = createContext<AuthType>();
 
 export const AuthProvider = (props: AccessTokenProps & any) => {
-  const [accessToken, setAccessToken] = useState<AccessToken>(new AccessToken(props.accessToken.token));
-  const [refreshToken, setRefreshToken] = useState<RefreshToken>(new RefreshToken(props.refreshToken.token));
+
+  const [auth, _setAuth] = useState<AccessTokenProps>({
+    accessToken: new AccessToken(props.accessToken.token),
+    refreshToken: new RefreshToken(props.refreshToken.token),
+  });
 
   const [loginMutation] = useLoginMutation();
   const [logoutMutation, { client }] = useLogoutMutation();
@@ -27,7 +31,7 @@ export const AuthProvider = (props: AccessTokenProps & any) => {
   const login = async (data: LoginFormData, redirectTo: string = "/dashboard") => {
     const response = await loginMutation({ variables: { data } });
     if (response.data) {
-      setAccessToken(new AccessToken(response.data.login.accessToken));
+      _setAuth({ ...auth, accessToken: new AccessToken(response.data.login.accessToken) });
     }
     if (redirectTo.includes("/login")) {
       redirectTo = "/dashboard";
@@ -36,26 +40,28 @@ export const AuthProvider = (props: AccessTokenProps & any) => {
   };
 
   const revokeTokens = async () => {
-    if (accessToken.isExpired || !accessToken.decoded.userId) throw new Error("invalid token");
-    await revokeTokenMutation({ variables: { userId: accessToken.decoded.userId } });
+    if (auth.accessToken.isExpired || !auth.accessToken.decoded.userId) throw new Error("invalid token");
+    await revokeTokenMutation({ variables: { userId: auth.accessToken.decoded.userId } });
     await logout();
   };
 
   const logout = async () => {
-    await client?.resetStore().catch(e => console.log(e));
+    await client?.resetStore();
     await logoutMutation();
-    setAccessToken(new AccessToken());
-    setRefreshToken(new RefreshToken());
+    _setAuth({
+      accessToken: new AccessToken(),
+      refreshToken: new RefreshToken(),
+    });
     (window as any).location = "/login";
   };
 
-  const setAuth = (jid: string, jit: string) => {
-    console.log("setauth", { jid, jit });
-    setAccessToken(new AccessToken(jit));
-    setRefreshToken(new RefreshToken(jid));
-    console.log("accessToken is valid", accessToken.isValid, new AccessToken(jit).isValid);
-    console.log("refreshToken is valid", !refreshToken.isExpired);
+  const setAuth = (auth: AccessTokenProps) => {
+    setInMemoryAuth(auth);
+    _setAuth(auth);
   };
+
+  console.log("HI JASON 22222");
+  console.log(auth.accessToken);
 
   return (
     <AuthContext.Provider
@@ -64,8 +70,8 @@ export const AuthProvider = (props: AccessTokenProps & any) => {
         login,
         logout,
         revokeTokens,
-        accessToken,
-        refreshToken,
+        accessToken: auth.accessToken,
+        refreshToken: auth.refreshToken,
       }}
       {...props}
     />
